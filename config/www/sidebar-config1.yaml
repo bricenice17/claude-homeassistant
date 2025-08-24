@@ -1,0 +1,74 @@
+title: My Custom Sidebar
+order:
+  # Home
+  - item: overview
+    name: Home
+
+  # Logbook
+  - item: logbook
+    name: Logbook
+
+  # HACS
+  - item: hacs
+    name: HACS
+
+  # Media
+  - item: media_browser
+    name: Media
+
+  # Add Devices & Services (link to Integrations and use original Devices icon)
+  - new_item: true
+    item: Devices & Services
+    href: /config/integrations
+    icon: mdi:devices
+
+  # Add Automations & Scenes
+  - new_item: true
+    item: Automations & Scenes
+    href: /config/automation/dashboard
+    icon: mdi:script
+
+  # Add Add-ons
+  - new_item: true
+    item: Add-ons
+    href: /hassio/dashboard
+    icon: mdi:puzzle
+
+  # Add System
+  - new_item: true
+    item: System
+    href: /config/system
+    icon: mdi:server
+
+  # Developer Tools (above Settings)
+  - item: developer-tools
+    name: Developer Tools
+    bottom: true
+    icon: mdi:tools
+
+  # Settings (bottom of sidebar)
+  - item: settings
+    name: Settings
+    bottom: true
+    icon: mdi:cog
+
+# HIDE UNWANTED ITEMS
+  # Hide Map
+  - item: map
+    hide: true
+
+  # Hide Weather
+  - item: Weather
+    hide: true
+
+  # Hide Energy
+  - item: energy
+    hide: true
+
+  # Hide History
+  - item: history
+    hide: true
+
+  # Hide To-do lists
+  - item: to-do_lists
+    hide: true

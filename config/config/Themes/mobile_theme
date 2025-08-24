@@ -1,0 +1,9 @@
+mobile_theme:
+  primary-color: "#222222"
+  lovelace-background: "#1a1a1a"
+  card-background-color: "#333333"
+  header-height: 0px
+  app-header-background-color: transparent
+  app-header-text-color: transparent
+  app-header-border-bottom: none
+  app-header-shadow: none

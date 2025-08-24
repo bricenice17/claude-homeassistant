@@ -1,51 +1,2466 @@
-# Example Home Assistant Automations
-# These are example automations showcasing common patterns
-
-- id: 'example_motion_lights'
-  alias: 'Example: Motion Activated Lights'
-  description: 'Turn on lights when motion is detected'
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.living_room_motion
-      to: 'on'
-  condition:
+- id: '1728249451016'
+  alias: Alex Phone Home Test - Travel Time
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.device_tracker_alex_iphone_ic3_zone_distance
+    - sensor.device_tracker_alex_iphone_ic3_travel_time_min
+    - sensor.device_tracker_alex_iphone_ic3_home_distance
+    below: 3
+    trigger: numeric_state
+  conditions:
+  - condition: state
+    state: not_home
+    entity_id: person.alexandra
+  - condition: and
+    conditions:
     - condition: state
-      entity_id: sun.sun
-      state: 'below_horizon'
-  action:
-    - service: light.turn_on
-      target:
-        entity_id: light.living_room_main
-      data:
-        brightness_pct: 75
+      entity_id: person.mike
+      state: home
+  actions:
+  - action: notify.mobile_app_kim_jong_uns_iphone
+    data:
+      title: Yo B, wrap it up!
+      message: Wrap it up, B!
+  mode: single
+- id: '1728598341016'
+  alias: Toggle GBR Hallway Light with Ecobee Motion
+  triggers:
+  - entity_id: binary_sensor.upstairs_motion
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: time
+    after: '23:00:00'
+    before: 07:00:00
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.gbr_hallway
+        state: 'off'
+      sequence:
+      - target:
+          entity_id: light.gbr_hallway
+        data:
+          brightness_pct: 5
+        action: light.turn_on
+      - delay: 00:00:30
+    - conditions:
+      - condition: state
+        entity_id: light.gbr_hallway
+        state: 'on'
+      sequence:
+      - delay: 00:00:10
+      - target:
+          entity_id: light.gbr_hallway
+        action: light.turn_off
+        data: {}
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: light.gbr_hallway
+        state: 'on'
+      sequence:
+      - delay: 00:08:00
+      - target:
+          entity_id: light.gbr_hallway
+        action: light.turn_off
+        data: {}
+      - delay: 00:01:00
+- id: '1728796213001'
+  alias: Toothbrush Battery Alert
+  description: ''
+  triggers:
+  - type: battery_level
+    device_id: 7f40342d1b58dc17ecf4c509e5640286
+    entity_id: de41f5987f8f2d2dc4272874dfb16c46
+    domain: sensor
+    trigger: device
+    below: 30
+  - trigger: numeric_state
+    entity_id:
+    - sensor.io_series_6_7_681d_battery
+    below: 70
+  conditions: []
+  actions:
+  - action: notify.notify
+    metadata: {}
+    data:
+      title: "\U0001FAA5 \U0001FAAB"
+      message: Charge your toothbrush, jabroni!
+  mode: single
+- id: '1729021145648'
+  alias: Outside Lights Control - Halloween Scene (October Only)
+  description: Turns Halloween scene on at 6:30 PM and off at midnight
+  triggers:
+  - at: '18:30:00'
+    trigger: time
+  - at: 00:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (now().month == 9 and now().day == 30) or (now().month ==
+      10) }}
 
-- id: 'example_schedule_lights'
-  alias: 'Example: Evening Light Schedule'
-  description: 'Turn on evening lights at sunset'
-  trigger:
-    - platform: sun
-      event: sunset
-      offset: "-00:30:00"
-  action:
-    - service: light.turn_on
-      target:
-        area_id: living_room
-      data:
-        brightness_pct: 50
+      '
+  actions:
+  - choose:
+    - conditions:
+      - condition: time
+        after: '18:29:59'
+        before: '23:59:59'
+      sequence:
+      - data:
+          brightness_pct: 80
+        target:
+          entity_id: light.outside_lights
+        action: light.turn_on
+      - target:
+          entity_id: scene.outside_lights_halloween_scene
+        action: scene.turn_on
+    - conditions:
+      - condition: time
+        after: '23:59:59'
+        before: 00:01:00
+      sequence:
+      - target:
+          entity_id: light.outside_lights
+        action: light.turn_off
+  mode: single
+- id: '1729032276389'
+  alias: Teeth Brushing > 2 Minutes
+  description: ''
+  triggers:
+  - type: duration
+    device_id: 7f40342d1b58dc17ecf4c509e5640286
+    entity_id: e65e8901297c4f0c964e2df1a718c36b
+    domain: sensor
+    trigger: device
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+    above: 115
+  - trigger: numeric_state
+    entity_id:
+    - sensor.io_series_6_7_681d_duration
+    above: 2
+  conditions: []
+  actions:
+  - action: notify.alexa_media_echo_tampa_br
+    metadata: {}
+    data:
+      message: Hey great job, you brush your teeth so nice like a real good boy!
+  mode: single
+- id: '1729461870134'
+  alias: Bedtime Routine
+  description: Automation triggered by specific Alexa routine turning off at least
+    two out of three specified entities.
+  triggers:
+  - entity_id:
+    - light.living_room_lights
+    - light.kitchen_lights
+    - media_player.samsung_qn90ca_75_2
+    to: 'off'
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: "{{\n  [\n    states('light.living_room_lights') == 'off',\n    states('light.kitchen_lights')
+      == 'off',\n    states('media_player.samsung_qn90ca_75_2') == 'off'\n  ] | select('eq',
+      true) | list | length >= 2\n}}\n"
+  - condition: time
+    after: '22:30:00'
+    before: '23:59:59'
+  actions:
+  - target:
+      entity_id: light.bedroom
+    action: light.turn_on
+    data: {}
+    enabled: false
+  - action: scene.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: scene.bedroom_half_half
+  - target:
+      entity_id: light.bedroom
+    data:
+      brightness_pct: 25
+    action: light.turn_on
+  - action: media_player.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: media_player.firestick_mbr
+  - delay: 00:00:05
+    enabled: false
+  - target:
+      entity_id: media_player.firestick_mbr
+    data:
+      media_content_type: app
+      media_content_id: com.netflix.ninja
+    action: media_player.play_media
+    enabled: false
+  mode: single
+- id: '1730224755582'
+  alias: Bathroom Motion-Activated Lighting
+  description: Controls bathroom lighting based on motion detection and time of day
+    with enhanced motion detection logic
+  triggers:
+  - entity_id: binary_sensor.motion_sensor_bedroom_motion
+    to: 'on'
+    trigger: state
+  - entity_id: binary_sensor.motion_sensor_bedroom_motion
+    to: 'off'
+    for:
+      minutes: 10
+    trigger: state
+  actions:
+  - variables:
+      motion_trigger: '{{ trigger.platform == ''state'' and trigger.to_state.state
+        == ''on'' }}'
+      timeout_trigger: '{{ trigger.platform == ''state'' and trigger.to_state.state
+        == ''off'' }}'
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ timeout_trigger }}'
+      - condition: state
+        entity_id: input_boolean.bathroom_timeout_active
+        state: 'on'
+      sequence:
+      - target:
+          entity_id:
+          - light.bathroom_hallway
+          - light.bathroom_hallway_2
+        action: light.turn_off
+        data: {}
+      - target:
+          entity_id: input_boolean.bathroom_timeout_active
+        action: input_boolean.turn_off
+        data: {}
+      - stop: Timeout reached, lights turned off
+    - conditions:
+      - condition: template
+        value_template: '{{ is_daytime and motion_trigger }}'
+      sequence:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: light.bathroom_hallway
+            state: 'off'
+          sequence:
+          - target:
+              entity_id: light.bathroom_hallway
+            data:
+              brightness_pct: 50
+            action: light.turn_on
+          - target:
+              entity_id: input_boolean.bathroom_timeout_active
+            action: input_boolean.turn_off
+            data: {}
+        - conditions:
+          - condition: state
+            entity_id: light.bathroom_hallway
+            state: 'on'
+          sequence:
+          - target:
+              entity_id: light.bathroom_hallway
+            data:
+              brightness_pct: 30
+            action: light.turn_on
+          - delay:
+              minutes: 2
+          - target:
+              entity_id: light.bathroom_hallway
+            action: light.turn_off
+            data: {}
+          - target:
+              entity_id: input_boolean.bathroom_timeout_active
+            action: input_boolean.turn_on
+            data: {}
+    - conditions:
+      - condition: template
+        value_template: '{{ not is_daytime and motion_trigger }}'
+      sequence:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: light.bathroom_hallway_2
+            state: 'off'
+          sequence:
+          - target:
+              entity_id: light.bathroom_hallway_2
+            data:
+              brightness_pct: 1
+            action: light.turn_on
+          - target:
+              entity_id: input_boolean.bathroom_timeout_active
+            action: input_boolean.turn_off
+            data: {}
+        - conditions:
+          - condition: state
+            entity_id: light.bathroom_hallway_2
+            state: 'on'
+          sequence:
+          - target:
+              entity_id: light.bathroom_hallway_2
+            action: light.turn_off
+            data: {}
+          - delay:
+              milliseconds: 500
+          - target:
+              entity_id: light.bathroom_hallway_2
+            data:
+              brightness_pct: 1
+            action: light.turn_on
+          - delay:
+              minutes: 2
+          - target:
+              entity_id: light.bathroom_hallway_2
+            action: light.turn_off
+            data: {}
+          - target:
+              entity_id: input_boolean.bathroom_timeout_active
+            action: input_boolean.turn_on
+            data: {}
+  variables:
+    is_daytime: '{{ now().hour >= 10 and now().hour < 22 }}'
+  mode: restart
+- id: '1730231317091'
+  alias: Loft Motion Notification
+  description: Sends a notification when motion is detected in the loft on weekdays,
+    only if Mike is in the office or loft
+  triggers:
+  - entity_id: binary_sensor.motion_sensor_loft_motion
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: time
+    after: '10:00:00'
+    before: '18:00:00'
+  - condition: template
+    value_template: '{{ now().weekday() in [0, 1, 2, 3, 4] }}
 
-- id: 'example_device_notification'
-  alias: 'Example: Low Battery Notification'
-  description: 'Notify when device battery is low'
-  trigger:
-    - platform: numeric_state
-      entity_id: sensor.phone_battery_level
-      below: 20
-  condition:
+      '
+  - condition: template
+    value_template: '{{ states(''sensor.mikewatchesp'') in [''office'', ''loft'']
+      }}
+
+      '
+  actions:
+  - data:
+      title: "\U0001F354"
+      message: Hamburger
+    action: notify.notify
+  - delay: 00:01:00
+  mode: restart
+- id: '1730385739902'
+  alias: Play WFAN on Living Room Speaker
+  description: ''
+  triggers:
+  - entity_id: input_button.play_wfan
+    trigger: state
+  conditions: []
+  actions:
+  - target:
+      entity_id: media_player.onkyo_7100
+    action: media_player.turn_on
+  - delay: 00:00:02
+  - target:
+      entity_id: media_player.living_room_speaker_4
+    data:
+      volume_level: 0.38
+    action: media_player.volume_set
+  - target:
+      entity_id: media_player.living_room_speaker_4
+    data:
+      media_content_id: library://radio/1
+      media_content_type: music
+    action: media_player.play_media
+  - delay: 00:00:03
+  - target:
+      entity_id: media_player.living_room_speaker_4
+    data:
+      volume_level: 0.38
+    action: media_player.volume_set
+  mode: restart
+- id: '1730404922602'
+  alias: Play Budos Band Radio
+  description: ''
+  triggers:
+  - entity_id:
+    - input_button.budos_band_radio
+    trigger: state
+  conditions: []
+  actions:
+  - target:
+      entity_id: media_player.living_room_speaker
+    action: media_player.turn_on
+  - delay: 00:00:02
+  - target:
+      entity_id: media_player.living_room_speaker_3
+    data:
+      media_content_id: library://playlist/16
+      media_content_type: playlist
+    metadata:
+      title: The Budos Band Radio
+      thumbnail:
+      media_class: playlist
+      children_media_class: track
+      navigateIds:
+      - {}
+      - media_content_type: mass
+        media_content_id: playlists
+      - media_content_type: music
+        media_content_id: library://playlist/16
+    action: media_player.play_media
+  mode: restart
+- id: '1730496150800'
+  alias: Play Spotify Liked Songs (Shuffled)
+  description: ''
+  triggers:
+  - entity_id:
+    - input_button.spotify_liked_songs
+    trigger: state
+  conditions: []
+  actions:
+  - target:
+      entity_id: media_player.living_room_speaker
+    action: media_player.turn_on
+    data: {}
+  - delay: 00:00:02
+  - target:
+      entity_id: media_player.spotify_mike_matican
+    data:
+      shuffle: true
+    action: media_player.shuffle_set
+  - delay: 00:00:01
+  - target:
+      entity_id: media_player.living_room_speaker_4
+    data:
+      media_content_id: 2FMhOwd5UiyDQ2MYJpe6jz?si=3e6432cb89a944cd
+      media_content_type: playlist
+    metadata:
+      title: Spotify Liked Songs
+      thumbnail: https://misc.scdn.co/liked-songs/liked-songs-64.png
+      media_class: playlist
+      children_media_class: track
+    action: media_player.play_media
+  mode: restart
+- id: '1733673254450'
+  alias: Sync Front Door Lock State with Boolean and Send Notification
+  description: Ensures the input_boolean matches the lock state and sends notifications.
+  triggers:
+  - entity_id: lock.front_door_lock
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: lock.front_door_lock
+        state: locked
+      sequence:
+      - target:
+          entity_id: input_boolean.front_door_lock
+        action: input_boolean.turn_on
+        data: {}
+      - data:
+          title: "\U0001F6AA \U0001F512"
+          message: Front door locked
+        action: notify.notify
+    - conditions:
+      - condition: state
+        entity_id: lock.front_door_lock
+        state: unlocked
+      sequence:
+      - target:
+          entity_id: input_boolean.front_door_lock
+        action: input_boolean.turn_off
+        data: {}
+      - data:
+          title: "\U0001F6AA \U0001F513"
+          message: Front door unlocked
+        action: notify.notify
+  mode: single
+- id: '1733673904439'
+  alias: Control Front Door Lock
+  description: Locks or unlocks the front door based on the input_boolean state, time,
+    and presence.
+  triggers:
+  - entity_id: input_boolean.front_door_lock
+    trigger: state
+  conditions:
+  - condition: time
+    after: 08:00:00
+    before: '23:00:00'
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: device_tracker.mike_iphone_ic3
+      state: home
+    - condition: state
+      entity_id: device_tracker.alex_iphone_ic3
+      state: home
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.front_door_lock
+        state: 'on'
+      sequence:
+      - target:
+          entity_id: lock.front_door_lock
+        action: lock.lock
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.front_door_lock
+        state: 'off'
+      sequence:
+      - target:
+          entity_id: lock.front_door_lock
+        action: lock.unlock
+        data: {}
+  mode: single
+- id: '1734647389211'
+  alias: Onkyo Volume Control
+  description: Sync Onkyo volume with helper slider and receiver
+  triggers:
+  - entity_id: input_number.onkyo_volume
+    trigger: state
+  - entity_id: media_player.living_room_speaker_4
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''input_number.onkyo_volume'' }}
+
+          '
+      sequence:
+      - data:
+          name: Onkyo Volume Debug
+          message: 'input_number.onkyo_volume changed to {{ trigger.to_state.state
+            }} — setting media_player.living_room_speaker_4 to {{ (trigger.to_state.state
+            | float / 100) | round(2) }}
+
+            '
+        action: logbook.log
+      - target:
+          entity_id: media_player.living_room_speaker_4
+        data:
+          volume_level: '{{ trigger.to_state.state | float / 100 }}'
+        action: media_player.volume_set
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''media_player.living_room_speaker_4''
+          }}
+
+          '
+      sequence:
+      - data:
+          name: Onkyo Volume Debug
+          message: 'media_player.living_room_speaker_4 volume changed to {{ (state_attr(''media_player.living_room_speaker_4'',
+            ''volume_level'') | float * 100) | round(1) }} — updating input_number.onkyo_volume
+
+            '
+        action: logbook.log
+      - data:
+          entity_id: input_number.onkyo_volume
+          value: '{{ (state_attr(''media_player.living_room_speaker_4'', ''volume_level'')
+            | float * 100) | round(1) }}
+
+            '
+        action: input_number.set_value
+  mode: single
+- id: '1735674019748'
+  alias: RLW Bedroom Switch Control
+  description: Controls bedroom lights and cycles scenes using RLW switch buttons
+  triggers:
+  - topic: zigbee2mqtt/RLW Switch - MBR/action
+    trigger: mqtt
+  actions:
+  - variables:
+      brightness_step: 10
+      hold_time: 1
+      scenes:
+      - scene.bedroom_bright
+      - scene.bedroom_half_half
+      - scene.bedroom_energize
+      - scene.bedroom_dimmed
+      - scene.bedroom_nightlight
+      - scene.bedroom_relax
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.payload == ''press_3'' }}'
+      sequence:
+      - target:
+          entity_id: light.bedroom
+        action: light.turn_on
+        data: {}
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.payload == ''press_4'' }}'
+      sequence:
+      - target:
+          entity_id: light.bedroom
+        action: light.turn_off
+        data: {}
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.payload == ''press_1'' }}'
+      sequence:
+      - target:
+          entity_id: light.bedroom
+        data:
+          brightness_step_pct: '{{ brightness_step }}'
+        action: light.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.payload == ''press_2'' }}'
+      sequence:
+      - target:
+          entity_id: light.bedroom
+        data:
+          brightness_step_pct: -{{ brightness_step }}
+        action: light.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.payload == ''press_1_and_3'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ scenes | random }}'
+        action: scene.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.payload == ''press_2_and_4'' }}'
+      sequence:
+      - variables:
+          button_pressed: '{{ trigger.payload }}'
+      - delay:
+          seconds: '{{ hold_time }}'
+      - variables:
+          long_press: '{{ trigger.payload == button_pressed and ''release_'' not in
+            trigger.payload }}'
+      - choose:
+        - conditions:
+          - condition: template
+            value_template: '{{ long_press }}'
+          sequence:
+          - target:
+              entity_id: media_player.echo_dot_tampa_br
+            data:
+              media_content_id: white noise
+              media_content_type: custom
+            action: media_player.play_media
+  mode: single
+- id: '1736010546882'
+  alias: Xmas Scene - Outside Lights Control (November 15th to January 7th)
+  description: Turns Xmas lights on at 5:45 PM and off at midnight
+  triggers:
+  - at: '17:45:00'
+    trigger: time
+  - at: 00:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: "{{ (now().month == 11 and now().day >= 15) or \n   (now().month
+      == 12) or \n   (now().month == 1 and now().day <= 7) }}\n"
+  actions:
+  - choose:
+    - conditions:
+      - condition: time
+        after: '17:44:59'
+        before: '23:59:59'
+      sequence:
+      - data:
+          brightness_pct: 85
+        target:
+          entity_id: light.outside_lights
+        action: light.turn_on
+      - target:
+          entity_id: scene.outside_lights_xmas_lights
+        action: scene.turn_on
+      - target:
+          entity_id:
+          - switch.house_side_plug_house_side_1
+          - switch.house_side_plug_house_side_2
+          - switch.porch_plug_porch_1
+          - switch.porch_plug_porch_2
+        action: switch.turn_on
+    - conditions:
+      - condition: time
+        after: '23:59:59'
+        before: 00:01:00
+      sequence:
+      - target:
+          entity_id: light.outside_lights
+        action: light.turn_off
+      - target:
+          entity_id:
+          - switch.house_side_plug_house_side_1
+          - switch.house_side_plug_house_side_2
+          - switch.porch_plug_porch_1
+          - switch.porch_plug_porch_2
+        action: switch.turn_off
+  mode: single
+- id: '1736109224773'
+  alias: Auto Lock Front Door When Closed 1 Minute
+  description: Lock front door if unlocked and the door remains closed for 5 seconds.
+  triggers:
+  - entity_id: lock.front_door_lock
+    to: unlocked
+    for:
+      seconds: 60
+    trigger: state
+  - entity_id: binary_sensor.sensor_front_door_contact
+    to: 'off'
+    for:
+      seconds: 60
+    trigger: state
+  conditions:
+  - condition: state
+    entity_id: lock.front_door_lock
+    state: unlocked
+  - condition: state
+    entity_id: binary_sensor.sensor_front_door_contact
+    state: 'off'
+  actions:
+  - target:
+      entity_id: lock.front_door_lock
+    action: lock.lock
+    data: {}
+  mode: single
+- id: '1736437095296'
+  alias: Limit Heating to 72 Degrees
+  description: Ensure heating is not set above 72 and send a notification.
+  triggers:
+  - entity_id:
+    - climate.downstairs
+    - climate.upstairs
+    attribute: temperature
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: "{{ trigger.to_state.attributes.temperature | float > 72 and\n
+      \  trigger.to_state.state == 'heat' }} \n"
+  actions:
+  - target:
+      entity_id: '{{ trigger.entity_id }}'
+    data:
+      temperature: 72
+    action: climate.set_temperature
+  - data:
+      title: "\U0001F525 \U0001F525 \U0001F525"
+      message: Dad sense activated! Thermostat was reset to 72.
+    action: notify.notify
+  mode: single
+- id: '1737070399446'
+  alias: Porch Light On When Doorbell Detects Person After Sunset
+  triggers:
+  - entity_id: binary_sensor.doorbell_person
+    from: 'off'
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: sun
+    after: sunset
+  - condition: state
+    entity_id: light.porch
+    state: 'off'
+  actions:
+  - data:
+      entity_id: light.porch
+    action: light.turn_on
+  - delay: 00:03:00
+  - data:
+      entity_id: light.porch
+    action: light.turn_off
+  mode: single
+- id: '1737588082805'
+  alias: Doorbell - Person | AI Event Summary Blueprint
+  description: ''
+  use_blueprint:
+    path: valentinfrlch/event_summary.yaml
+    input:
+      mode: Camera
+      important: false
+      remember: true
+      notify_device:
+      - d5df609c000d624ae17fdc03dde5c574
+      camera_entities:
+      - camera.doorbell_clear
+      motion_sensors:
+      - binary_sensor.doorbell_person
+      provider: 01K2FRTZ57VBHT1FKS8KAC6EGV
+      model: meta-llama/llama-4-maverick-17b-128e-instruct
+      message: "{\n  \"role\": \"Clever, Funny Narrator\",\n  \"task\": \"Generate
+        a 1–2 sentence description of a person’s appearance and what they did.\",\n
+        \ \"constraints\": {\n    \"sentence_limit\": 2,\n    \"word_limit\": 25,\n
+        \   \"style\": \"Snarky, witty, observational; punchy comedic timing\",\n
+        \   \"output_only\": \"Only return the event description; no meta text.\"\n
+        \ },\n  \"humor_policy\": {\n    \"allow_snark_on_visible_subjects\": true,\n
+        \   \"allow_exaggeration\": \"Metaphors, hyperbole, and sarcasm are allowed
+        if tied to visible people/objects/actions.\",\n    \"allowed_hedges\": [\"probably\",
+        \"guessing\", \"looks like\"],\n    \"spice_level\": \"PG-13 to R; avoid slurs
+        or hate speech.\"\n  },\n  \"accuracy_policy\": {\n    \"describe_visible_only\":
+        true,\n    \"no_invented_entities\": \"Do not add people/objects/actions that
+        are not visible.\",\n    \"brand_text_rule\": \"Name logos/brands only if
+        clearly readable.\",\n    \"uncertainty\": \"If a detail isn’t clear, keep
+        it generic rather than guessing specifics.\"\n  },\n  \"delivery_rule\": {\n
+        \   \"mention_delivery_person_only_if_visible\": true,\n    \"drop_off_spec\":
+        \"If a delivery person is visible, mention where they are delivering from,
+        if visible. I.e, you see an Amazon or FedEx logo on them. State what they
+        dropped off (package, food, etc.) based on what is shown.\"\n  },\n  \"micro_template\":
+        [\n    \"Start with a concrete visible fact (appearance/action).\",\n    \"Follow
+        with a short roast or witty tag tied to that same visible thing.\"\n  ],\n
+        \ \"phrasing_prompts\": [\n    \"Lead with the obvious, then twist the knife
+        with a joke.\",\n    \"Prefer vivid verbs over bland ones (lugged, shuffled,
+        strutted).\"\n  ],\n  \"special_cases\": {\n    \"no_person_detected\": \"Make
+        a clever or snarky remark about the empty scene; do not invent people or objects.\"\n
+        \ },\n  \"output_format\": \"Single string with 1–2 sentences, ≤25 words total.
+        Raw text only; do not wrap in quotes.\"\n}"
+      temperature: 1
+      generate_title: false
+      max_tokens: 100
+      tap_navigate: '{{video if video != '''''''' else image}}'
+      preview_mode: Snapshot
+      duration: 3
+      input_mode: Camera
+      notification_delivery: Consolidated
+      max_frames: 2
+      use_memory: true
+      notification_time: ''
+      notification_critical: true
+      target_width: 1280
+      cooldown:
+        hours: 0
+        minutes: 2
+        seconds: 0
+- id: '1737597036306'
+  alias: Restart Z2M Network
+  description: Check if multiple Zigbee sensors report as unknown or unavailable and
+    restart Z2M.
+  triggers:
+  - entity_id:
+    - binary_sensor.sensor_front_door_contact
+    - binary_sensor.sensor_lanai_screen_contact
+    - binary_sensor.sensor_garage_entrance_contact
+    to:
+    - unknown
+    - unavailable
+    trigger: state
+  conditions:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: binary_sensor.sensor_front_door_contact
+      state: unknown
+    - condition: state
+      entity_id: binary_sensor.sensor_front_door_contact
+      state: unavailable
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: binary_sensor.sensor_lanai_screen_contact
+      state: unknown
+    - condition: state
+      entity_id: binary_sensor.sensor_lanai_screen_contact
+      state: unavailable
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: binary_sensor.sensor_garage_entrance_contact
+      state: unknown
+    - condition: state
+      entity_id: binary_sensor.sensor_garage_entrance_contact
+      state: unavailable
+  actions:
+  - data:
+      title: Automation Triggered
+      message: Triggering core restart button.
+    action: persistent_notification.create
+  - target:
+      entity_id: button.slzb_06m_core_restart
+    action: button.press
+    data: {}
+  - delay: 00:00:30
+  - data:
+      title: Core Restarted
+      message: Now starting Zigbee2MQTT add-on.
+    action: persistent_notification.create
+  - data:
+      addon: 45df7312_zigbee2mqtt
+    action: hassio.addon_start
+  - data:
+      title: Automation Completed
+      message: Z2M restart process completed successfully.
+    action: persistent_notification.create
+  mode: single
+- id: '1737844897608'
+  alias: Winter Scene - Outside Lights Control (January 8th to March 10th)
+  description: Turns outside winter lights on at 5:45 PM and off at midnight
+  triggers:
+  - at: '17:45:00'
+    trigger: time
+  - at: 00:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: "{{ (now().month == 1 and now().day >= 8) or \n   (now().month
+      == 2) or \n   (now().month == 3 and now().day <= 10) }}\n"
+  actions:
+  - choose:
+    - conditions:
+      - condition: time
+        after: '17:44:59'
+        before: '23:59:59'
+      sequence:
+      - data:
+          brightness_pct: 80
+        target:
+          entity_id: light.outside_lights
+        action: light.turn_on
+      - target:
+          entity_id: scene.outside_lights_winter_lights
+        action: scene.turn_on
+    - conditions:
+      - condition: time
+        after: '23:59:59'
+        before: 00:01:00
+      sequence:
+      - target:
+          entity_id: light.outside_lights
+        action: light.turn_off
+  mode: single
+- id: '1737860546404'
+  alias: Garage - Person | AI Event Summary Blueprint
+  description: ''
+  use_blueprint:
+    path: valentinfrlch/event_summary.yaml
+    input:
+      mode: Camera
+      important: false
+      remember: true
+      notify_device:
+      - d5df609c000d624ae17fdc03dde5c574
+      camera_entities:
+      - camera.garage_clear
+      motion_sensors:
+      - binary_sensor.garage_person
+      cooldown:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      provider: 01K2FRTZ57VBHT1FKS8KAC6EGV
+      model: meta-llama/llama-4-maverick-17b-128e-instruct
+      message: "{\n  \"role\": \"Comedian (Bill Burr style)\",\n  \"task\": \"Generate
+        a funny, crude, vulgar roast of what’s in the image.\",\n  \"constraints\":
+        {\n    \"sentence_limit\": 2,\n    \"word_limit\": 25,\n    \"style\": \"Sarcastic,
+        ranty, vulgar, Bill Burr tone\",\n    \"focus\": \"Describe people/objects
+        that are clearly visible, then layer on insults, exaggerations, or snide commentary.\"\n
+        \ },\n  \"accuracy_policy\": {\n    \"describe_visible_only\": true,\n    \"no_invented_entities\":
+        \"Do not add people, animals, or objects that cannot be seen.\",\n    \"allow_exaggeration\":
+        \"Insults, sarcasm, crude metaphors, and swearing are allowed if tied to the
+        visible subject.\",\n    \"legible_text\": \"Only repeat text if it is clearly
+        readable.\"\n  },\n  \"tone_control\": {\n    \"vulgarity_level\": 10,\n    \"scale\":
+        \"1 = mild sarcasm with light swearing, 5 = solid roast with profanity, 10
+        = full Bill Burr meltdown with maximum vulgarity.\"\n  },\n  \"examples\":
+        {\n    \"1\": \"Guy looks like he just woke up, still trying to figure out
+        how the hell pants work.\",\n    \"2\": \"She’s hauling that box like it’s
+        a golden treasure, when it’s probably just some cheap crap from Amazon.\",\n
+        \   \"3\": \"Buddy looks like he lost a fight with his laundry basket. Jesus,
+        ever heard of a fucking iron?\",\n    \"4\": \"That delivery guy’s sweating
+        his ass off like he’s smuggling bricks, when it’s probably just a goddamn
+        pizza.\",\n    \"5\": \"This slob looks like laundry day puked on him. Dragging
+        that box like it’s the last fuck he’ll ever give.\",\n    \"6\": \"Christ,
+        this guy looks like he showered in grease. Bet that box is full of fucking
+        disappointment and Hot Pockets.\",\n    \"7\": \"Jesus Christ, look at this
+        asshole—hair’s a dumpster fire, face says ‘hungover,’ and he’s carrying that
+        box like it’s his goddamn coffin.\",\n    \"8\": \"Look at this fucking clown—pants
+        sagging, sweat pouring, dragging a package like it’s full of his shitty excuses.\",\n
+        \   \"9\": \"This motherfucker looks like he crawled out of a porta-potty
+        explosion, lugging junk like it’s his last pathetic paycheck.\",\n    \"10\":
+        \"Look at this absolute fucking train wreck—sweaty, pissed, dressed like a
+        drunk prick who lost a knife fight with his own filthy laundry.\"\n  },\n
+        \ \"special_cases\": {\n    \"no_person_detected\": \"Make a snide, vulgar
+        Bill Burr–style crack about the empty scene (e.g., an empty garage).\"\n  },\n
+        \ \"output_format\": \"Single or dual roast sentence, ≤25 words. Raw text
+        only. Do not wrap the final description in quotes.\"\n}"
+      temperature: 1
+      generate_title: false
+      max_tokens: 100
+      tap_navigate: /mobile-dash/security
+      preview_mode: Snapshot
+      duration: 3
+      max_frames: 3
+      input_mode: Camera
+      notification_delivery: Consolidated
+      run_conditions:
+      - condition: time
+        after: '12:00:00'
+        before: '10:30:00'
+        weekday:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+        - sat
+        - sun
+      use_memory: true
+      notification_time: ''
+      target_width: 1280
+- id: '1737907925069'
+  alias: Notify When Multiple Lights Are On
+  triggers:
+  - entity_id:
+    - light.bathroom_hallway
+    - light.loft_lights
+    - light.garage_lights
+    - light.porch
+    - light.lanai
+    - light.gbr_hallway
+    - light.kids_in_the_hall
+    to: 'on'
+    for: 00:01:00
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: "{{ expand([\n  'light.bathroom_hallway',\n  'light.loft_lights',\n
+      \ 'light.garage_lights',\n  'light.porch',\n  'light.lanai',\n  'light.gbr_hallway',\n
+      \ 'light.kids_in_the_hall'\n]) | selectattr('state', 'eq', 'on') | list | count
+      > 5 }}\n"
+  actions:
+  - data:
+      title: "\U0001F4A1\U0001F4A1\U0001F4A1"
+      message: Multiple lights have been on over a minute
+      data:
+        url: /mobile-dash/lights
+    action: notify.notify
+  mode: single
+- id: '1738181678264'
+  alias: Doorbell Visitor - Actionable Notification Unlock
+  description: Sends a notification with a snapshot and allows unlocking the front
+    door
+  triggers:
+  - entity_id: binary_sensor.doorbell_visitor
+    to: 'on'
+    trigger: state
+  actions:
+  - target:
+      entity_id: camera.doorbell_fluent
+    data:
+      filename: /config/www/camera_snapshots/doorbell.jpg
+    action: camera.snapshot
+  - action: script.unlock_door_for_visitor
+    metadata: {}
+    data: {}
+  mode: single
+- id: '1738357632765'
+  alias: Turn on Loft Light when Mike's Watch is near
+  triggers:
+  - value_template: '{{ states("sensor.mikewatchesp") == "loft" and state_attr("sensor.mikewatchesp",
+      "distance") | float < 3 }}
+
+      '
+    trigger: template
+  actions:
+  - target:
+      entity_id: light.loft_lights
+    action: light.turn_on
+  mode: single
+- id: '1738615537365'
+  alias: Play WFAN on Yamaha when Mike's Watch is near Loft
+  triggers:
+  - value_template: '{{ states("sensor.mikewatchesp") == "loft" and state_attr("sensor.mikewatchesp",
+      "distance") | float < 1 }}
+
+      '
+    trigger: template
+  conditions:
+  - condition: time
+    after: '12:00:00'
+    before: '18:00:00'
+  - condition: template
+    value_template: '{{ states("media_player.mike_s_yamaha_yas_209") in ["paused",
+      "off"] }}
+
+      '
+  actions:
+  - target:
+      entity_id: media_player.mike_s_yamaha_yas_209
+    data:
+      media_content_id: WFAN radio
+      media_content_type: custom
+    action: media_player.play_media
+  mode: single
+- id: '1738788999156'
+  alias: Connected To Wifi Test
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.kim_jong_uns_iphone_ssid
+    from: Not Connected
+    to: The Jerk Store
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.loft_lights
+  mode: single
+- id: '1738878324439'
+  alias: Play WFAN on Lanai Speaker (Zone 2)
+  description: Turn on zone 2, set volume and play WFAN on the lanai speakers
+  triggers:
+  - entity_id:
+    - input_button.wfan_z2
+    trigger: state
+  conditions: []
+  actions:
+  - target:
+      entity_id: media_player.onkyo_7100_zone_2
+    action: media_player.turn_on
+    data: {}
+  - delay: 00:00:05
+  - target:
+      entity_id: media_player.tx_nr7100_zone_2
+    data:
+      volume_level: 0.92
+    action: media_player.volume_set
+  - target:
+      entity_id: media_player.onkyo_7100_zone_2
+    data:
+      media_content_id: library://radio/1
+      media_content_type: music
+    action: media_player.play_media
+  mode: restart
+- id: '1739219257390'
+  alias: Knicks Game Lighting Automation
+  description: Turn on Knicks lighting scene 20 minutes before game time
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.knicks_start_time
+    to: in 24 minutes
+  - trigger: state
+    entity_id:
+    - sensor.knicks_start_time
+    to: in 23 minutes
+  - trigger: state
+    entity_id:
+    - sensor.knicks_start_time
+    to: in 22 minutes
+  - trigger: state
+    entity_id:
+    - sensor.knicks_start_time
+    to: in 21 minutes
+  - trigger: state
+    entity_id:
+    - sensor.knicks_start_time
+    to: in 20 minutes
+  - trigger: state
+    entity_id:
+    - sensor.knicks_start_time
+    to: in 15 minutes
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      brightness_pct: 75
+    target:
+      entity_id:
+      - light.all_downstairs
+  - action: hue.activate_scene
+    metadata: {}
+    data: {}
+    target:
+      entity_id: scene.all_downstairs_new_york_knicks
+  mode: single
+- id: '1739305098428'
+  alias: Giants Game Lighting
+  description: Turn on Giants lighting scene 1 hour before game time
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.giants_start_time
+    to: in 1 hour
+  - trigger: state
+    entity_id:
+    - sensor.giants_start_time
+    to: in 59 minutes
+  - trigger: state
+    entity_id:
+    - sensor.giants_start_time
+    to: in 58 minutes
+  - trigger: state
+    entity_id:
+    - sensor.giants_start_time
+    to: in 57 minutes
+  - trigger: state
+    entity_id:
+    - sensor.giants_start_time
+    to: in 56 minutes
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      brightness_pct: 75
+    target:
+      entity_id:
+      - light.all_downstairs
+  - action: hue.activate_scene
+    metadata: {}
+    data: {}
+    target:
+      entity_id: scene.all_downstairs_new_york_giants
+  mode: single
+- id: '1739305334242'
+  alias: Game Lighting - Yankees
+  description: Turn on Yankees lighting scene 20 minutes before game time
+  triggers:
+  - entity_id: sensor.yankees_start_time
+    to: in 24 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 23 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 22 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 21 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 20 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 19 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 18 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 17 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 16 minutes
+    trigger: state
+  - entity_id: sensor.yankees_start_time
+    to: in 15 minutes
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{% set start_date = strptime(''2025-03-27'', ''%Y-%m-%d'').date()
+      %} {% set end_date = strptime(''2025-11-01'', ''%Y-%m-%d'').date() %} {% set
+      today = now().date() %} {{ start_date <= today < end_date }}
+
+      '
+  - condition: time
+    after: '17:00:00'
+    before: '21:00:00'
+  actions:
+  - data:
+      brightness_pct: 75
+    target:
+      entity_id: light.all_downstairs
+    action: light.turn_on
+  - target:
+      entity_id: scene.all_downstairs_new_york_yankees
+    action: hue.activate_scene
+  mode: single
+- id: '1739313907079'
+  alias: Adelaide's Room - Motion Detected
+  triggers:
+  - entity_id: binary_sensor.adelaide_br_motion
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: time
+    after: '20:15:00'
+    before: '23:59:59'
+  - condition: time
+    after: 00:00:00
+    before: 06:00:00
+  actions:
+  - data:
+      message: 'Adelaide: Motion was detected at {{ now().strftime(''%I:%M:%S %p'')
+        }}. Click to view live stream.'
+      title: "\U0001F6B6‍♀️ Motion Detected \U0001F6B6‍♀️"
+      data:
+        url: /mobile-dash/kids
+    action: notify.notify
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 30
+      milliseconds: 0
+  mode: single
+- id: '1739397132963'
+  alias: Motion Detected - Fire TV Loft Snapshot Notification
+  description: Take a snapshot on motion detection and send it as a notification to
+    Fire TV Cube - Loft
+  triggers:
+  - entity_id: binary_sensor.adelaide_br_person
+    to: 'on'
+    trigger: state
+  actions:
+  - delay: '00:00:00.5'
+  - data:
+      entity_id: camera.adelaide_br_clear
+      filename: /config/www/adelaide_snapshot.jpg
+    action: camera.snapshot
+  - delay: 00:00:01
+  - data:
+      title: Motion Alert
+      message: Motion detected in Adelaide's room!
+      data:
+        duration: 10
+        position: bottom-right
+        fontsize: small
+        transparency: 50%
+        color: grey
+        interrupt: 0
+        image: http://homeassistant.local:8123/local/adelaide_snapshot.jpg
+    action: notify.fire_tv_cube_loft
+  mode: single
+- id: '1739490890850'
+  alias: Fire TVs Snapshot - Camera Motion
+  description: 'Take a snapshot on person detection from Adelaide''s room or doorbell,
+    and send notifications to Fire TV Cube - Loft, Fire TV Cube - LR, and Firestick
+    - MBR.
+
+    '
+  triggers:
+  - entity_id:
+    - binary_sensor.adelaide_br_person
+    - binary_sensor.doorbell_person
+    - binary_sensor.doorbell_visitor
+    to: 'on'
+    trigger: state
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''binary_sensor.adelaide_br_person''
+          }}'
+      sequence:
+      - delay: '00:00:00.5'
+      - data:
+          entity_id: camera.adelaide_br_clear
+          filename: /config/www/adelaide_snapshot.jpg
+        action: camera.snapshot
+      - delay: 00:00:01
+      - data:
+          title: Motion Alert
+          message: Motion detected from Adelaide's room!
+          data:
+            duration: 10
+            position: bottom-right
+            fontsize: small
+            transparency: 50%
+            color: grey
+            interrupt: 0
+            image: http://192.168.1.44:8123/local/adelaide_snapshot.jpg
+        action: notify.fire_tv_cube_loft
+      - data:
+          title: Motion Alert
+          message: Motion detected from Adelaide's room!
+          data:
+            duration: 10
+            position: bottom-right
+            fontsize: small
+            transparency: 50%
+            color: grey
+            interrupt: 0
+            image: http://192.168.1.44:8123/local/adelaide_snapshot.jpg
+        action: notify.fire_tv_cube_lr
+      - data:
+          title: Motion Alert
+          message: Motion detected from Adelaide's room!
+          data:
+            duration: 10
+            position: bottom-right
+            fontsize: small
+            transparency: 50%
+            color: grey
+            interrupt: 0
+            image: http://192.168.1.44:8123/local/adelaide_snapshot.jpg
+        action: notify.firestick_mbr
+      - delay: 00:00:15
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id in [''binary_sensor.doorbell_person'',
+          ''binary_sensor.doorbell_visitor''] }}
+
+          '
+      sequence:
+      - delay: '00:00:00.5'
+      - data:
+          entity_id: camera.doorbell_clear
+          filename: /config/www/doorbell_snapshot.jpg
+        action: camera.snapshot
+      - delay: 00:00:01
+      - data:
+          title: Doorbell Alert
+          message: Someone is at the door!
+          data:
+            duration: 10
+            position: bottom-right
+            fontsize: small
+            transparency: 50%
+            color: grey
+            interrupt: 0
+            image: http://192.168.1.44:8123/local/doorbell_snapshot.jpg
+        action: notify.fire_tv_cube_loft
+      - data:
+          title: Doorbell Alert
+          message: Someone is at the door!
+          data:
+            duration: 10
+            position: bottom-right
+            fontsize: small
+            transparency: 50%
+            color: grey
+            interrupt: 0
+            image: http://192.168.1.44:8123/local/doorbell_snapshot.jpg
+        action: notify.fire_tv_cube_lr
+      - data:
+          title: Doorbell Alert
+          message: Someone is at the door!
+          data:
+            duration: 10
+            position: bottom-right
+            fontsize: small
+            transparency: 50%
+            color: grey
+            interrupt: 0
+            image: http://192.168.1.44:8123/local/doorbell_snapshot.jpg
+        action: notify.firestick_mbr
+      - delay: 00:00:15
+  mode: single
+- id: '1739854751460'
+  alias: Master Bedroom Presence-Based Automation
+  triggers:
+  - value_template: '{{ states("sensor.mikewatchesp") == "master_br" }}
+
+      '
+    trigger: template
+  conditions:
+  - condition: time
+    after: '11:00:00'
+    before: '20:00:00'
+  actions:
+  - target:
+      entity_id: light.bedroom
+    action: light.turn_on
+  - wait_for_trigger:
+    - value_template: '{{ states("sensor.mikewatchesp") != "master_br" }}
+
+        '
+      trigger: template
+  - target:
+      entity_id: light.bedroom
+    action: light.turn_off
+  mode: restart
+- id: '1740158170068'
+  alias: Post Workout Shower - Resume Spotify
+  description: ''
+  triggers:
+  - entity_id: binary_sensor.sensor_garage_entrance_contact
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: time
+    after: '11:45:00'
+    before: '12:30:00'
+  actions:
+  - wait_for_trigger:
+    - entity_id: light.bathroom_hallway
+      to: 'on'
+      trigger: state
+    timeout: 00:02:00
+    continue_on_timeout: false
+  - target:
+      entity_id: media_player.echo_tampa_br
+    data:
+      media_content_id: resume spotify
+      media_content_type: custom
+    action: media_player.play_media
+  mode: single
+- id: '1741023904651'
+  alias: Yamaha Soundbar Volume Control
+  description: Sync Yamaha soundbar volume with helper slider and soundbar
+  triggers:
+  - entity_id: input_number.yamaha_soundbar_volume
+    trigger: state
+  - entity_id: media_player.mike_s_yamaha_yas_209
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''input_number.yamaha_soundbar_volume''
+          }}'
+      sequence:
+      - target:
+          entity_id: media_player.mike_s_yamaha_yas_209
+        data:
+          volume_level: '{{ trigger.to_state.state | float / 100 }}'
+        action: media_player.volume_set
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''media_player.mike_s_yamaha_yas_209''
+          }}'
+      sequence:
+      - target:
+          entity_id: input_number.yamaha_soundbar_volume
+        data:
+          value: '{{ (state_attr(''media_player.mike_s_yamaha_yas_209'', ''volume_level'')
+            | float * 100) | round(1) }}'
+        action: input_number.set_value
+  mode: single
+- id: '1741100154128'
+  alias: Echo Pop Volume Control
+  description: Sync Echo Pop volume with helper slider and Alexa
+  triggers:
+  - entity_id: input_number.echo_pop_mbr_volume
+    trigger: state
+  - entity_id: media_player.echo_pop_tampa_br
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''input_number.echo_pop_mbr_volume''
+          }}'
+      sequence:
+      - target:
+          entity_id: media_player.echo_pop_tampa_br
+        data:
+          volume_level: '{{ trigger.to_state.state | float / 100 }}'
+        action: media_player.volume_set
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''media_player.echo_pop_tampa_br''
+          and (state_attr(''media_player.echo_pop_tampa_br'', ''volume_level'') |
+          float * 100) | round(1) != states(''input_number.echo_pop_mbr_volume'')
+          | float }}'
+      sequence:
+      - target:
+          entity_id: input_number.echo_pop_mbr_volume
+        action: input_number.set_value
+- id: '1741101720412'
+  alias: Echo Tampa BR Volume Control
+  description: Sync Echo Tampa BR volume with helper slider and Alexa
+  triggers:
+  - entity_id: input_number.echo_tampa_br_volume
+    trigger: state
+  - entity_id: media_player.echo_tampa_br
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''input_number.echo_tampa_br_volume''
+          }}'
+      sequence:
+      - target:
+          entity_id: media_player.echo_tampa_br
+        data:
+          volume_level: '{{ trigger.to_state.state | float / 100 }}'
+        action: media_player.volume_set
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''media_player.echo_tampa_br'' and
+          (state_attr(''media_player.echo_tampa_br'', ''volume_level'') | float *
+          100) | round(1) != states(''input_number.echo_tampa_br_volume'') | float
+          }}'
+      sequence:
+      - target:
+          entity_id: input_number.echo_tampa_br_volume
+        data:
+          value: '{{ (state_attr(''media_player.echo_tampa_br'', ''volume_level'')
+            | float * 100) | round(1) }}'
+        action: input_number.set_value
+  mode: restart
+- id: '1742087328179'
+  alias: Outside Lights Control - Spring/Summer Scene (March 11th to Sept. 30th)
+  description: 'Turns garage and porch lights on with random, saturated colors at
+    7:50 PM and off at midnight from March 11 through September 30—except during July
+    1 – 5 when the ''Merica automation is active.
+
+    '
+  triggers:
+  - at: '19:50:00'
+    trigger: time
+  - at: 00:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{% set mmdd = (now().month * 100) + now().day %} {{ (311 <= mmdd
+      <= 630) or (706 <= mmdd <= 930) }}
+
+      '
+  actions:
+  - choose:
+    - conditions:
+      - condition: time
+        after: '19:49:59'
+        before: '23:59:59'
+      sequence:
+      - target:
+          entity_id:
+          - light.garage_1
+          - light.garage_2
+          - light.porch_1
+          - light.porch_2
+        data:
+          brightness_pct: 80
+        action: light.turn_on
+      - target:
+          entity_id: light.garage_1
+        data:
+          hs_color:
+          - '{{ range(0, 360) | random }}'
+          - 100
+        action: light.turn_on
+      - target:
+          entity_id: light.garage_2
+        data:
+          hs_color:
+          - '{{ range(0, 360) | random }}'
+          - 100
+        action: light.turn_on
+      - target:
+          entity_id: light.porch_1
+        data:
+          hs_color:
+          - '{{ range(0, 360) | random }}'
+          - 100
+        action: light.turn_on
+      - target:
+          entity_id: light.porch_2
+        data:
+          hs_color:
+          - '{{ range(0, 360) | random }}'
+          - 100
+        action: light.turn_on
+    - conditions:
+      - condition: time
+        after: '23:59:59'
+        before: 00:01:00
+      sequence:
+      - target:
+          entity_id:
+          - light.garage_1
+          - light.garage_2
+          - light.porch_1
+          - light.porch_2
+        action: light.turn_off
+  mode: single
+- id: '1744232588046'
+  alias: Reset Weekly Counters
+  description: Resets all six food and activity counters every Sunday at midnight
+    and sends a weekly recap notification
+  triggers:
+  - at: 00:00:00
+    trigger: time
+  conditions:
+  - condition: time
+    weekday:
+    - sun
+  actions:
+  - variables:
+      poultry: '{{ states(''counter.chicken'') }}'
+      seafood: '{{ states(''counter.seafood'') }}'
+      beef: '{{ states(''counter.beef'') }}'
+      alcohol: '{{ states(''counter.alcohol'') }}'
+      walks: '{{ states(''counter.outside_walks'') }}'
+      weed: '{{ states(''counter.weed'') }}'
+  - data:
+      title: 'Weekly Recap:'
+      message: 'Poultry - {{ poultry }}
+
+        Seafood - {{ seafood }}
+
+        Beef - {{ beef }}
+
+        Alcohol - {{ alcohol }}
+
+        Walks - {{ walks }}
+
+        Weed - {{ weed }}
+
+        '
+    action: notify.mobile_app_kim_jong_uns_iphone
+  - target:
+      entity_id:
+      - counter.chicken
+      - counter.seafood
+      - counter.beef
+      - counter.alcohol
+      - counter.outside_walks
+      - counter.weed
+    action: counter.reset
+  mode: single
+- id: '1746538915636'
+  alias: Onkyo Volume ControlLLLLL
+  description: Sync Onkyo volume with helper slider and receiver
+  triggers:
+  - entity_id: input_number.onkyo_volume
+    trigger: state
+  - entity_id: media_player.living_room_speaker_4
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''input_number.onkyo_volume'' }}
+
+          '
+      sequence:
+      - target:
+          entity_id: media_player.living_room_speaker_4
+        data:
+          volume_level: '{{ trigger.to_state.state | float / 100 }}'
+        action: media_player.volume_set
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id == ''media_player.living_room_speaker_4''
+          }}
+
+          '
+      sequence:
+      - data:
+          entity_id: input_number.onkyo_volume
+          value: '{{ (state_attr(''media_player.living_room_speaker_4'', ''volume_level'')
+            | float * 100) | round(1) }}
+
+            '
+        action: input_number.set_value
+  mode: single
+- id: '1750210947524'
+  alias: Summer Climate Schedule
+  triggers:
+  - at: '23:00:00'
+    trigger: time
+  - at: 08:00:00
+    trigger: time
+  - at: '12:01:00'
+    trigger: time
+  - entity_id:
+    - binary_sensor.living_room_person
+    - binary_sensor.downstairs_occupancy
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: "{% set m = now().month %} {% set d = now().day %} {{ (m > 5 or
+      (m == 5 and d >= 1)) and\n   (m < 9 or (m == 9 and d <= 30)) }}\n"
+  actions:
+  - target:
+      entity_id: climate.upstairs
+    data:
+      hvac_mode: cool
+      temperature: 74
+    action: climate.set_temperature
+  - choose:
+    - conditions:
+      - condition: time
+        after: '23:00:00'
+        before: 08:00:00
+      sequence:
+      - target:
+          entity_id: climate.downstairs
+        data:
+          hvac_mode: cool
+          temperature: 74
+        action: climate.set_temperature
+    - conditions:
+      - condition: time
+        after: 08:00:00
+        before: '12:01:00'
+      sequence:
+      - target:
+          entity_id: climate.downstairs
+        data:
+          hvac_mode: cool
+          temperature: 76
+        action: climate.set_temperature
+    - conditions:
+      - condition: time
+        after: '12:00:59'
+        before: '23:00:00'
+      sequence:
+      - choose:
+        - conditions:
+          - condition: or
+            conditions:
+            - condition: state
+              entity_id: binary_sensor.living_room_person
+              state: 'on'
+            - condition: state
+              entity_id: binary_sensor.downstairs_occupancy
+              state: 'on'
+          sequence:
+          - target:
+              entity_id: climate.downstairs
+            data:
+              hvac_mode: cool
+              temperature: 76
+            action: climate.set_temperature
+        default:
+        - target:
+            entity_id: climate.downstairs
+          data:
+            hvac_mode: cool
+            temperature: 77
+          action: climate.set_temperature
+  mode: single
+  initial_state: true
+- id: '1750624017971'
+  alias: Adelaide - Person | AI Event Summary Blueprint
+  description: ''
+  use_blueprint:
+    path: valentinfrlch/event_summary.yaml
+    input:
+      mode: Camera
+      important: false
+      remember: true
+      notify_device:
+      - d5df609c000d624ae17fdc03dde5c574
+      camera_entities:
+      - camera.adelaide_br_clear
+      motion_sensors:
+      - binary_sensor.adelaide_br_person
+      provider: 01K2FRTZ57VBHT1FKS8KAC6EGV
+      model: meta-llama/llama-4-maverick-17b-128e-instruct
+      temperature: 0.5
+      generate_title: false
+      max_tokens: 100
+      tap_navigate: '{{video if video != '''''''' else image}}'
+      preview_mode: Snapshot
+      duration: 3
+      input_mode: Camera
+      notification_delivery: Consolidated
+      max_frames: 2
+      use_memory: true
+      run_conditions:
+      - condition: or
+        conditions:
+        - condition: time
+          after: '20:15:00'
+        - condition: time
+          before: 06:00:00
+        enabled: true
+      notification_critical: false
+      additional_actions: []
+      message: 'In one sentence only, describe, in a comical way, what you see happening.
+        If you notice the door open, and a person peak or come out, mention that. '
+      notification_time: ''
+      target_width: 1280
+      cooldown:
+        hours: 0
+        minutes: 5
+        seconds: 0
+- id: '1750798915826'
+  alias: Morning Routine
+  description: ''
+  triggers:
+  - value_template: '{{ states("sensor.mikewatchesp") == "kitchen" and state_attr("sensor.mikewatchesp",
+      "distance") | float < 3 }}
+
+      '
+    trigger: template
+  conditions:
+  - condition: time
+    after: 08:05:00
+    before: 08:45:00
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+  actions:
+  - metadata: {}
+    data: {}
+    target:
+      entity_id: input_button.play_wfan
+    action: input_button.press
+  - metadata: {}
+    data:
+      brightness_pct: 60
+      color_temp_kelvin: 2000
+    target:
+      entity_id: light.kitchen_lights
+    action: light.turn_on
+  - metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - cover.living_room_blinds
+      - cover.dining_room_blinds
+    action: cover.open_cover
+  mode: single
+- id: '1750801653697'
+  alias: Giants Game Start - Play Hell's Bells
+  description: Play Hell's Bells at game time
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.giants_start_time
+    to: just now
+  conditions: []
+  actions:
+  - action: media_player.play_media
+    metadata: {}
+    data:
+      media_content_id: Play Hells Bells by the band AC/DC
+      media_content_type: custom
+    target:
+      entity_id: media_player.echo_show_kitchen
+  mode: single
+- id: '1750945701014'
+  alias: Yankees Win, Theeeeeeeeeeeeee Yankees WIN!
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.yankees_winner
+    to: 'True'
+  conditions: []
+  actions:
+  - action: media_player.play_media
+    target:
+      entity_id: media_player.echo_show_kitchen
+    data:
+      media_content_id: 'play theme from new york, new york by frank sinatra '
+      media_content_type: custom
+    metadata: {}
+  mode: single
+- id: '1751058869797'
+  alias: Outside Lights Control - 'Merica's Birthday (July 1st to July 5th)
+  description: 'Turns garage and porch lights red & blue at 7:50 PM and turns them
+    off at midnight from July 1 through July 5.
+
+    '
+  triggers:
+  - at: '19:50:00'
+    trigger: time
+  - at: 00:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ now().month == 7 and 1 <= now().day <= 5 }}
+
+      '
+  actions:
+  - choose:
+    - conditions:
+      - condition: time
+        after: '19:49:59'
+        before: '23:59:59'
+      sequence:
+      - target:
+          entity_id:
+          - light.garage_1
+          - light.garage_2
+          - light.porch_1
+          - light.porch_2
+        data:
+          brightness_pct: 80
+        action: light.turn_on
+      - target:
+          entity_id: light.garage_1
+        data:
+          rgb_color:
+          - 255
+          - 0
+          - 0
+        action: light.turn_on
+      - target:
+          entity_id: light.garage_2
+        data:
+          rgb_color:
+          - 0
+          - 0
+          - 255
+        action: light.turn_on
+      - target:
+          entity_id: light.porch_1
+        data:
+          rgb_color:
+          - 255
+          - 0
+          - 0
+        action: light.turn_on
+      - target:
+          entity_id: light.porch_2
+        data:
+          rgb_color:
+          - 0
+          - 0
+          - 255
+        action: light.turn_on
+    - conditions:
+      - condition: time
+        after: '23:59:59'
+        before: 00:01:00
+      sequence:
+      - target:
+          entity_id:
+          - light.garage_1
+          - light.garage_2
+          - light.porch_1
+          - light.porch_2
+        action: light.turn_off
+  mode: single
+- &id001
+  id: front_door_lock_battery_low
+  alias: Front Door Lock Low Battery
+  description: Notification when front door lock battery dips below 20%
+  triggers:
+  - entity_id: sensor.front_door_lock_battery_level
+    below: 20
+    for: 00:30:00
+    trigger: numeric_state
+  actions:
+  - data:
+      title: "\U0001FAAB Front door lock battery low"
+      message: 'The front door battery is down to {{ states(''sensor.front_door_lock_battery_level'')
+        }} %.
+
+        '
+    action: notify.notify
+  - data:
+      title: Front-door lock battery low
+      message: 'Battery level is {{ states(''sensor.front_door_lock_battery_level'')
+        }} %.
+
+        '
+    action: persistent_notification.create
+  mode: single
+- *id001
+- *id001
+- *id001
+- *id001
+- *id001
+- id: '1751330175110'
+  alias: Arm Alarm If Home
+  description: ''
+  triggers:
+  - trigger: time
+    at: '22:00:00'
+  conditions:
+  - condition: zone
+    entity_id: person.mike
+    zone: zone.home
+  actions:
+  - action: script.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: script.arm_alarm_if_home
+  mode: single
+- id: '1751376286527'
+  alias: Disarm Alarm - Morning
+  description: ''
+  triggers:
+  - trigger: time
+    at: 07:30:00
+  conditions:
+  - condition: zone
+    entity_id: person.mike
+    zone: zone.home
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: alarm_control_panel.alarmo
+      state: armed_home
+    - condition: state
+      entity_id: alarm_control_panel.alarmo
+      state: armed_away
+  actions:
+  - action: script.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: script.disarm_alarm_actionable
+  mode: single
+- id: '1752348587213'
+  alias: All Door & Window Notifications (HA TTS Speak)
+  description: Sends Alexa announcements and push notifications when a door/window
+    opens or closes for all doors and windows (barn reminder only for doors).
+  triggers:
+  - entity_id:
+    - binary_sensor.konnected_front_door_zone_1
+    - binary_sensor.konnected_garage_door_zone_2
+    - binary_sensor.sensor_lanai_screen_contact
+    - binary_sensor.konnected_lanai_door_zone_6
+    - binary_sensor.konnected_adelaide_windows_zone_12
+    - binary_sensor.konnected_dining_room_windows_zone_4
+    - binary_sensor.konnected_guest_window_zone_9
+    - binary_sensor.konnected_kitchen_windows_zone_5
+    - binary_sensor.konnected_loft_window_zone_8
+    - binary_sensor.konnected_upstairs_master_windows_zone_7
+    - binary_sensor.konnected_merrick_window_zone_10
+    - binary_sensor.konnected_office_windows_zone_11
+    to: 'on'
+    id: door_open
+    trigger: state
+  - entity_id:
+    - binary_sensor.konnected_front_door_zone_1
+    - binary_sensor.konnected_garage_door_zone_2
+    - binary_sensor.sensor_lanai_screen_contact
+    - binary_sensor.konnected_lanai_door_zone_6
+    - binary_sensor.konnected_adelaide_windows_zone_12
+    - binary_sensor.konnected_dining_room_windows_zone_4
+    - binary_sensor.konnected_guest_window_zone_9
+    - binary_sensor.konnected_kitchen_windows_zone_5
+    - binary_sensor.konnected_loft_window_zone_8
+    - binary_sensor.konnected_upstairs_master_windows_zone_7
+    - binary_sensor.konnected_merrick_window_zone_10
+    - binary_sensor.konnected_office_windows_zone_11
+    to: 'off'
+    id: door_closed
+    trigger: state
+  - entity_id:
+    - binary_sensor.konnected_front_door_zone_1
+    - binary_sensor.konnected_garage_door_zone_2
+    - binary_sensor.sensor_lanai_screen_contact
+    - binary_sensor.konnected_lanai_door_zone_6
+    to: 'on'
+    for:
+      minutes: 1
+    id: door_left_open
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: door_open
+      sequence:
+      - parallel:
+        - action: notify.notify
+          data:
+            title: "{% set windows = [\n  'binary_sensor.konnected_adelaide_windows_zone_12',\n
+              \ 'binary_sensor.konnected_dining_room_windows_zone_4',\n  'binary_sensor.konnected_guest_window_zone_9',\n
+              \ 'binary_sensor.konnected_kitchen_windows_zone_5',\n  'binary_sensor.konnected_loft_window_zone_8',\n
+              \ 'binary_sensor.konnected_upstairs_master_windows_zone_7',\n  'binary_sensor.konnected_merrick_window_zone_10',\n
+              \ 'binary_sensor.konnected_office_windows_zone_11'\n] %} {% if trigger.entity_id
+              in windows %}➡️ \U0001FA9F{% else %}\U0001F6AA ➡️{% endif %}\n"
+            message: "{% if trigger.entity_id == 'binary_sensor.konnected_front_door_zone_1'
+              %}\n  Front door is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_garage_door_zone_2'
+              %}\n  Garage entrance is open\n{% elif trigger.entity_id == 'binary_sensor.sensor_lanai_screen_contact'
+              %}\n  Lanai screen door is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_lanai_door_zone_6'
+              %}\n  Lanai door is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_adelaide_windows_zone_12'
+              %}\n  Adelaide window is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_dining_room_windows_zone_4'
+              %}\n  Dining room window is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_guest_window_zone_9'
+              %}\n  Guest bedroom window is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_kitchen_windows_zone_5'
+              %}\n  Kitchen window is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_loft_window_zone_8'
+              %}\n  Loft window is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_upstairs_master_windows_zone_7'
+              %}\n  Master bedroom window is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_merrick_window_zone_10'
+              %}\n  Merrick bedroom window is open\n{% elif trigger.entity_id == 'binary_sensor.konnected_office_windows_zone_11'
+              %}\n  Office window is open\n{% endif %}\n"
+        - action: tts.speak
+          target:
+            entity_id: tts.home_assistant_cloud
+          data:
+            message: "{% if trigger.entity_id == 'binary_sensor.konnected_front_door_zone_1'
+              %}\n  Front door open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_garage_door_zone_2'
+              %}\n  Garage entrance open.\n{% elif trigger.entity_id == 'binary_sensor.sensor_lanai_screen_contact'
+              %}\n  Lanai screen door open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_lanai_door_zone_6'
+              %}\n  Lanai door open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_adelaide_windows_zone_12'
+              %}\n  Adelaide bedroom window open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_dining_room_windows_zone_4'
+              %}\n  Dining room window open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_guest_window_zone_9'
+              %}\n  Guest bedroom window open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_kitchen_windows_zone_5'
+              %}\n  Kitchen window open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_loft_window_zone_8'
+              %}\n  Loft window open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_upstairs_master_windows_zone_7'
+              %}\n  Master bedroom window open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_merrick_window_zone_10'
+              %}\n  Merrick bedroom window open.\n{% elif trigger.entity_id == 'binary_sensor.konnected_office_windows_zone_11'
+              %}\n  Office window open.\n{% endif %}\n"
+            media_player_entity_id: media_player.echo_show_kitchen
+            cache: true
+    - conditions:
+      - condition: trigger
+        id: door_closed
+      sequence:
+      - parallel:
+        - action: notify.notify
+          data:
+            title: "{% set windows = [\n  'binary_sensor.konnected_adelaide_windows_zone_12',\n
+              \ 'binary_sensor.konnected_dining_room_windows_zone_4',\n  'binary_sensor.konnected_guest_window_zone_9',\n
+              \ 'binary_sensor.konnected_kitchen_windows_zone_5',\n  'binary_sensor.konnected_loft_window_zone_8',\n
+              \ 'binary_sensor.konnected_upstairs_master_windows_zone_7',\n  'binary_sensor.konnected_merrick_window_zone_10',\n
+              \ 'binary_sensor.konnected_office_windows_zone_11'\n] %} {% if trigger.entity_id
+              in windows %}⬅️ \U0001FA9F{% else %}\U0001F6AA ⬅️{% endif %}\n"
+            message: "{% if trigger.entity_id == 'binary_sensor.konnected_front_door_zone_1'
+              %}\n  Front door is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_garage_door_zone_2'
+              %}\n  Garage entrance is closed\n{% elif trigger.entity_id == 'binary_sensor.sensor_lanai_screen_contact'
+              %}\n  Lanai screen door is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_lanai_door_zone_6'
+              %}\n  Lanai door is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_adelaide_windows_zone_12'
+              %}\n  Adelaide window is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_dining_room_windows_zone_4'
+              %}\n  Dining room window is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_guest_window_zone_9'
+              %}\n  Guest bedroom window is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_kitchen_windows_zone_5'
+              %}\n  Kitchen window is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_loft_window_zone_8'
+              %}\n  Loft window is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_upstairs_master_windows_zone_7'
+              %}\n  Master bedroom window is closed\n{% elif trigger.entity_id ==
+              'binary_sensor.konnected_merrick_window_zone_10' %}\n  Merrick bedroom
+              window is closed\n{% elif trigger.entity_id == 'binary_sensor.konnected_office_windows_zone_11'
+              %}\n  Office window is closed\n{% endif %}\n"
+        - action: tts.speak
+          target:
+            entity_id: tts.home_assistant_cloud
+          data:
+            message: "{% if trigger.entity_id == 'binary_sensor.konnected_front_door_zone_1'
+              %}\n  Front door closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_garage_door_zone_2'
+              %}\n  Garage entrance closed.\n{% elif trigger.entity_id == 'binary_sensor.sensor_lanai_screen_contact'
+              %}\n  Lanai screen door closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_lanai_door_zone_6'
+              %}\n  Lanai door closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_adelaide_windows_zone_12'
+              %}\n  Adelaide bedroom window closed.\n{% elif trigger.entity_id ==
+              'binary_sensor.konnected_dining_room_windows_zone_4' %}\n  Dining room
+              window closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_guest_window_zone_9'
+              %}\n  Guest bedroom window closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_kitchen_windows_zone_5'
+              %}\n  Kitchen window closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_loft_window_zone_8'
+              %}\n  Loft window closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_upstairs_master_windows_zone_7'
+              %}\n  Master bedroom window closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_merrick_window_zone_10'
+              %}\n  Merrick bedroom window closed.\n{% elif trigger.entity_id == 'binary_sensor.konnected_office_windows_zone_11'
+              %}\n  Office window closed.\n{% endif %}\n"
+            media_player_entity_id: media_player.echo_show_kitchen
+            cache: true
+    - conditions:
+      - condition: trigger
+        id: door_left_open
+      sequence:
+      - parallel:
+        - action: notify.notify
+          data:
+            title: "\U0001F437\U0001F414\U0001F42E"
+            message: "{% if trigger.entity_id == 'binary_sensor.konnected_front_door_zone_1'
+              %}\n  What, do you live in a barn?! The front door has been open for
+              over a minute\n{% elif trigger.entity_id == 'binary_sensor.konnected_garage_door_zone_2'
+              %}\n  What, do you live in a barn?! The garage entrance has been open
+              for over a minute\n{% elif trigger.entity_id == 'binary_sensor.sensor_lanai_screen_contact'
+              %}\n  What, do you live in a barn?! The lanai screen door has been open
+              for over a minute\n{% elif trigger.entity_id == 'binary_sensor.konnected_lanai_door_zone_6'
+              %}\n  What, do you live in a barn?! The lanai door has been open for
+              over a minute\n{% endif %}\n"
+        - action: tts.speak
+          target:
+            entity_id: tts.home_assistant_cloud
+          data:
+            message: "{% if trigger.entity_id == 'binary_sensor.konnected_front_door_zone_1'
+              %}\n  What, do you live in a barn?! The front door has been open for
+              over a minute.\n{% elif trigger.entity_id == 'binary_sensor.konnected_garage_door_zone_2'
+              %}\n  What, do you live in a barn?! The garage entrance has been open
+              for over a minute.\n{% elif trigger.entity_id == 'binary_sensor.sensor_lanai_screen_contact'
+              %}\n  What, do you live in a barn?! The lanai screen door has been open
+              for over a minute.\n{% elif trigger.entity_id == 'binary_sensor.konnected_lanai_door_zone_6'
+              %}\n  What, do you live in a barn?! The lanai door has been open for
+              over a minute.\n{% endif %}\n"
+            media_player_entity_id: media_player.echo_show_kitchen
+            cache: true
+  mode: single
+- id: '1753023073984'
+  alias: Arm Alarm If Nobody's Home
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - person.mike
+    to: not_home
+  conditions:
+  - condition: state
+    entity_id: person.alexandra
+    state: not_home
+  actions:
+  - action: script.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: script.arm_alarm_if_away
+  mode: single
+- id: '1754247454057'
+  alias: Close Downstairs Blinds at Dusk
+  description: Close blinds automatically at dusk
+  triggers:
+  - entity_id:
+    - sun.sun
+    from:
+    to: below_horizon
+    trigger: state
+  actions:
+  - target:
+      entity_id:
+      - cover.living_room_blinds
+      - cover.dining_room_blinds
+    data: {}
+    action: cover.close_cover
+  mode: single
+- &id002
+  id: adelaide_br_motion_snapshot_to_phone
+  alias: 'Adelaide BR: Motion → Critical snapshot to phone'
+  triggers:
+  - entity_id:
+    - binary_sensor.adelaide_br_person
+    to: 'on'
+    trigger: state
+  conditions:
+  - condition: or
+    conditions:
     - condition: time
-      after: '09:00:00'
-      before: '22:00:00'
-  action:
-    - service: notify.mobile_app
+      after: '20:15:00'
+      before: '23:59:59'
+    - condition: time
+      after: 00:00:00
+      before: 06:00:00
+  actions:
+  - target:
+      entity_id: camera.adelaide_br_clear
+    data:
+      filename: '{{ snapshot_path }}'
+    action: camera.snapshot
+  - delay: 00:00:01
+  - data:
+      title: "⚠️ \U0001F467\U0001F3FB \U0001F6B6‍♀️"
+      message: Adelaide detected!
       data:
-        title: "Low Battery Alert"
-        message: "Your phone battery is at {{ states('sensor.phone_battery_level') }}%"
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 1
+          interruption-level: critical
+        image: '{{ snapshot_url }}'
+    action: notify.mobile_app_kim_jong_uns_iphone
+  mode: single
+  variables:
+    snapshot_fn: adelaide_br_{{ now().strftime('%Y%m%d_%H%M%S') }}.jpg
+    snapshot_path: /config/www/snapshots/{{ snapshot_fn }}
+    snapshot_url: /local/snapshots/{{ snapshot_fn }}
+- *id002
+- id: '1754857467192'
+  alias: Alarmo — Triggered push + Disarm action (single automation)
+  triggers:
+  - id: send_push
+    entity_id: alarm_control_panel.alarmo
+    to: triggered
+    trigger: state
+  - id: disarm_action
+    event_type: mobile_app_notification_action
+    event_data:
+      action: DISARM_ALARMO
+    trigger: event
+  actions:
+  - choose:
+    - conditions: '{{ trigger.id == ''send_push'' }}'
+      sequence:
+      - data:
+          title: "\U0001F6A8 Alarm TRIGGERED"
+          message: "The alarm is triggered! Cause: {{ (trigger.to_state.attributes.open_sensors
+            | default([]))\n   | map('state_attr','friendly_name') | list | join(',
+            ') }}\n"
+          data:
+            push:
+              sound:
+                name: default
+                critical: 1
+                volume: 1
+            actions:
+            - action: DISARM_ALARMO
+              title: Disarm Alarm
+              destructive: true
+              authenticationRequired: true
+        action: notify.notify
+    - conditions: '{{ trigger.id == ''disarm_action'' }}'
+      sequence:
+      - target:
+          entity_id: alarm_control_panel.alarmo
+        data:
+          code: '6669'
+        action: alarm_control_panel.alarm_disarm
+      - wait_template: '{{ states(''alarm_control_panel.alarmo'') == ''disarmed''
+          }}'
+        timeout: 00:00:02
+        continue_on_timeout: true
+      - choose:
+        - conditions: '{{ states(''alarm_control_panel.alarmo'') != ''disarmed'' }}'
+          sequence:
+          - target:
+              entity_id: alarm_control_panel.alarmo
+            data:
+              code: '1217'
+            action: alarm_control_panel.alarm_disarm
+  mode: parallel
+- id: '1755028258955'
+  alias: Unlock Front Door with Tag
+  description: Unlocks the front door when a specific NFC tag is scanned.
+  triggers:
+  - trigger: tag
+    tag_id: f82e61c5-ca7e-4410-bf15-917f2756e317
+  conditions: []
+  actions:
+  - action: lock.unlock
+    metadata: {}
+    data:
+      code: '4974'
+    target:
+      entity_id: lock.front_door_lock
+  mode: single
+- id: '1755629020187'
+  alias: Shutdown Mac Mini Weeknights
+  triggers:
+  - at: '15:44:00'
+    trigger: time
+  conditions:
+  - condition: time
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+  actions:
+  - action: shell_command.shutdown_mac
+    data: {}
+  mode: single
+- id: test_automation_123
+  alias: "Test Automation"
+  description: "Test automation to verify workflow"
+  triggers:
+  - at: "23:59:00"
+    trigger: time
+  conditions: []
+  actions:
+  - action: homeassistant.turn_on
+    target:
+      entity_id: light.living_room_1
+  mode: single
+- id: test_automation_123
+  alias: "Test Automation"
+  description: "Test automation to verify workflow"
+  triggers:
+  - at: "23:59:00"
+    trigger: time
+  conditions: []
+  actions:
+  - action: homeassistant.turn_on
+    target:
+      entity_id: light.living_room_1
+  mode: single

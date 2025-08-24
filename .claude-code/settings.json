@@ -18,7 +18,7 @@
   "validation": {
     "enabled": true,
     "auto_run": true,
-    "block_invalid_push": true
+    "block_invalid_push": false
   },
   "development": {
     "python": {

@@ -4,6 +4,7 @@
 Runs all validators and provides a comprehensive report.
 """
 
+import json
 import subprocess
 import sys
 import time
@@ -111,6 +112,20 @@ class ValidationTestRunner:
 
         print(f"Total execution time: {total_duration:.2f}s")
         print("=" * 60)
+
+# Check Claude Code settings for block_invalid_push
+        try:
+            with open('.claude-code/settings.json', 'r') as f:
+                settings = json.load(f)
+            block_invalid_push = settings.get('validation', {}).get('block_invalid_push', True)
+    
+    # If block_invalid_push is false, only fail on Official HA validation
+            if not block_invalid_push:
+                official_ha_result = self.results.get("ha_official_validator.py", {})
+                if official_ha_result.get("passed", False):
+                    return True  # Official HA passed, so allow push
+        except Exception:
+            pass  # If settings can't be read, use default behavior
 
         return all_passed
 

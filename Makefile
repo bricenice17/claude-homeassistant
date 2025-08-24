@@ -1,7 +1,7 @@
 # Home Assistant Configuration Management Makefile
 
 # Configuration
-HA_HOST = your_homeassistant_host
+HA_HOST = ha
 HA_REMOTE_PATH = /config/
 LOCAL_CONFIG_PATH = config/
 BACKUP_DIR = backups

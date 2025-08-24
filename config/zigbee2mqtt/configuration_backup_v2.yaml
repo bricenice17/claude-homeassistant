@@ -1,0 +1,57 @@
+homeassistant:
+  experimental_event_entities: true
+advanced:
+  network_key:
+    - 42
+    - 16
+    - 24
+    - 86
+    - 133
+    - 244
+    - 8
+    - 149
+    - 65
+    - 173
+    - 49
+    - 207
+    - 98
+    - 224
+    - 42
+    - 102
+  pan_id: 15814
+  ext_pan_id:
+    - 245
+    - 54
+    - 63
+    - 109
+    - 34
+    - 111
+    - 225
+    - 185
+  transmit_power: 20
+  log_level: info
+  elapsed: true
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://core-mosquitto:1883
+  user: addons
+  password: XoopahvaZahtooziugei4gaush3zaiwushain1phei2ohw7ookahBugh7agoe5Oo
+  keepalive: 60
+  reject_unauthorized: true
+  version: 4
+serial:
+  port: tcp://192.168.1.161:6638
+  baudrate: 115200
+  adapter: ezsp
+frontend:
+  enabled: true
+  port: 8099
+device_options: {}
+devices:
+  '0x0000000001780e4a':
+    friendly_name: RLW Switch - MBR
+  '0x000fff000077d630':
+    friendly_name: '0x000fff000077d630'
+  '0xa4c138f3f2a33bb8':
+    friendly_name: Sensor - Front Door
+version: 2

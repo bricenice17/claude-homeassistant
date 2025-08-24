@@ -1,0 +1,34 @@
+{
+    "0x0000000001780e4a": {
+        "linkquality": 211
+    },
+    "0xa4c138f3f2a33bb8": {
+        "voltage": 2700,
+        "battery": 98,
+        "linkquality": 184,
+        "contact": true,
+        "tamper": false,
+        "battery_low": false
+    },
+    "0xa4c138ad37839be8": {
+        "voltage": 2600,
+        "battery": 93,
+        "linkquality": 216,
+        "contact": true,
+        "tamper": false,
+        "battery_low": false
+    },
+    "0xa4c138766d142bfd": {
+        "voltage": 2700,
+        "battery": 98,
+        "contact": true,
+        "tamper": false,
+        "battery_low": false,
+        "linkquality": 92
+    },
+    "0xa4c138dd769448ac": {
+        "battery": 89,
+        "voltage": 2900,
+        "linkquality": 140
+    }
+}

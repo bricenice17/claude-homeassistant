@@ -1,52 +1,318 @@
-# Example Home Assistant Scripts
-# These are reusable sequences that can be called from automations or manually
-
-good_morning:
-  alias: "Good Morning Routine"
-  description: "Morning startup sequence"
+fire_tv_remote_buttons:
+  alias: Fire TV Remote
   sequence:
-    - service: light.turn_on
-      target:
-        area_id: bedroom
-      data:
-        brightness_pct: 30
-    - delay: '00:00:30'
-    - service: media_player.volume_set
-      target:
-        entity_id: media_player.bedroom_speaker
-      data:
-        volume_level: 0.3
-    - service: media_player.play_media
-      target:
-        entity_id: media_player.bedroom_speaker
-      data:
-        media_content_id: "https://example.com/morning_playlist"
-        media_content_type: "music"
-
-good_night:
-  alias: "Good Night Routine"
-  description: "Evening shutdown sequence"
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''up'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 19
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''down'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 20
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''left'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 21
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''right'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 22
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''select'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 23
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''back'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 4
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''home'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 3
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''menu'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 82
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''play_pause'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 85
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''rewind'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 89
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''fast_forward'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 90
+        action: androidtv.adb_command
+    - conditions:
+      - condition: template
+        value_template: '{{ button == ''settings'' }}'
+      sequence:
+      - target:
+          entity_id: '{{ entity_id }}'
+        data:
+          command: input keyevent 176
+        action: androidtv.adb_command
+  mode: single
+  fields:
+    button:
+      description: Fire TV Button (up, down, left, right, select, home, back, menu,
+        play_pause, rewind, fast_forward)
+      example: up
+    entity_id:
+      description: The Fire TV to control
+      example: media_player.fire_tv_living_room
+  description: ''
+  icon: mdi:remote-tv
+unlock_door_for_visitor:
+  alias: Unlock Door For Visitor
+  use_blueprint:
+    path: homeassistant/confirmable_notification.yaml
+    input:
+      notify_device: d5df609c000d624ae17fdc03dde5c574
+      confirm_text: "\U0001F513 Unlock?"
+      confirm_action:
+      - action: lock.unlock
+        metadata: {}
+        data: {}
+        target:
+          entity_id: lock.front_door_lock
+      message: "\U0001F514 Someone's at the door \U0001F514"
+  description: Confirmable notification to unlock door
+alarmo_triggered_strobe:
+  alias: Alarmo Triggered Strobe
+  mode: restart
   sequence:
-    - service: light.turn_off
-      target:
-        area_id: living_room
-    - service: climate.set_temperature
-      target:
-        entity_id: climate.main_thermostat
-      data:
-        temperature: 68
-    - service: lock.lock
-      target:
-        area_id: exterior
-
-security_check:
-  alias: "Security Check"
-  description: "Check all doors and windows"
+  - data:
+      scene_id: downstairs_pre_alarm
+      snapshot_entities:
+      - light.all_downstairs
+    action: scene.create
+  - repeat:
+      sequence:
+      - target:
+          entity_id: light.all_downstairs
+        data:
+          rgb_color:
+          - 255
+          - 0
+          - 0
+          brightness: 255
+        action: light.turn_on
+      - delay: 00:00:01
+      - target:
+          entity_id: light.all_downstairs
+        action: light.turn_off
+      - delay: 00:00:01
+      until:
+      - condition: template
+        value_template: "{{ states('alarm_control_panel.alarmo')\n   not in ['triggered','pending']
+          }}\n"
+  - target:
+      entity_id: scene.downstairs_pre_alarm
+    action: scene.turn_on
+  description: ''
+alarmo_living_room_siren:
+  alias: Alarmo – ALL Sirens
+  mode: restart
   sequence:
-    - service: notify.mobile_app
-      data:
-        title: "Security Check"
-        message: >
-          Front Door: {{ states('lock.front_door') }}
-          Back Door: {{ states('lock.back_door') }}
-          Security System: {{ states('alarm_control_panel.home_security') }}
+  - target:
+      entity_id:
+      - siren.living_room_siren
+      - siren.garage_siren
+      - siren.adelaide_br_siren
+    action: siren.turn_on
+    data: {}
+  - target:
+      entity_id: switch.konnected_alarm_siren_1
+    action: switch.turn_on
+    data: {}
+  - wait_template: '{{ states(''alarm_control_panel.alarmo'') != ''triggered'' }}'
+    timeout: 00:15:00
+    continue_on_timeout: true
+  - target:
+      entity_id:
+      - siren.living_room_siren
+      - siren.garage_siren
+      - siren.adelaide_br_siren
+    action: siren.turn_off
+    data: {}
+  - target:
+      entity_id: switch.konnected_alarm_siren_1
+    action: switch.turn_off
+    data: {}
+arm_alarm_if_home:
+  alias: Arm alarm if home
+  use_blueprint:
+    path: homeassistant/confirmable_notification.yaml
+    input:
+      notify_device: d5df609c000d624ae17fdc03dde5c574
+      title: It’s 10pm and you’re home
+      message: Arm the alarm?
+      confirm_text: Arm!
+      confirm_action:
+      - target:
+          entity_id: alarm_control_panel.alarmo
+        action: alarm_control_panel.alarm_arm_home
+disarm_alarm_actionable:
+  alias: Disarm Alarm (Actionable)
+  use_blueprint:
+    path: homeassistant/confirmable_notification.yaml
+    input:
+      notify_device: d5df609c000d624ae17fdc03dde5c574
+      title: It’s morning, you're probably up
+      message: Disarm the alarm?
+      confirm_text: Disarm!
+      confirm_action:
+      - action: alarm_control_panel.alarm_disarm
+        target:
+          entity_id:
+          - alarm_control_panel.alarmo
+        data:
+          code: '6669'
+  description: ''
+alarmo_intruder_tts:
+  alias: Alarmo – Intruder TTS (Multi-room)
+  mode: restart
+  sequence:
+  - target:
+      entity_id:
+      - media_player.echo_show_kitchen
+      - media_player.echo_pop_tampa_br
+    data:
+      volume_level: 1
+    action: media_player.volume_set
+  - repeat:
+      until:
+      - condition: template
+        value_template: '{{ states(''alarm_control_panel.alarmo'') != ''triggered''
+          }}'
+      sequence:
+      - target:
+          entity_id: tts.home_assistant_cloud
+        data:
+          media_player_entity_id: media_player.echo_show_kitchen
+          message: Intruder detected. The police are on the way.
+          cache: true
+        action: tts.speak
+      - target:
+          entity_id: tts.home_assistant_cloud
+        data:
+          media_player_entity_id: media_player.echo_pop_tampa_br
+          message: Intruder detected. The police are on the way.
+          cache: true
+        action: tts.speak
+      - delay: 00:00:05
+  - target:
+      entity_id:
+      - media_player.echo_show_kitchen
+      - media_player.echo_pop_tampa_br
+    action: media_player.media_stop
+  description: 'Maxes volume on both Echo devices and repeats the warning every 5
+    s while Alarmo is in ''triggered''; everything stops automatically once the alarm
+    is cleared.
+
+    '
+arm_alarm_if_away:
+  alias: Arm alarm if away
+  use_blueprint:
+    path: homeassistant/confirmable_notification.yaml
+    input:
+      notify_device: d5df609c000d624ae17fdc03dde5c574
+      title: It appears no one is home
+      message: Arm the alarm?
+      confirm_text: Arm!
+      confirm_action:
+      - action: alarm_control_panel.alarm_arm_away
+        target:
+          entity_id:
+          - alarm_control_panel.alarmo
+        data: {}
+  description: ''
+llmv_test_script:
+  sequence:
+  - action: llmvision.stream_analyzer
+    metadata: {}
+    data:
+      remember: false
+      use_memory: false
+      duration: 3
+      max_frames: 2
+      include_filename: false
+      target_width: 1280
+      max_tokens: 30
+      message: '{{message}}'
+      generate_title: false
+      expose_images: false
+      provider: 01JJ52EVWPFGCEPTRS466EKJER
+      model: gemini-2.0
+      image_entity:
+      - camera.adelaide_br_clear
+    response_variable: response
+  - stop: ''
+    response_variable: response
+  fields:
+    message:
+      selector:
+        text:
+      name: message
+      required: true
+  alias: LLMV Test Script
+  description: ''

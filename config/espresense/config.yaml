@@ -1,0 +1,249 @@
+# MQTT Connection, if empty will query and use hassio provided mqtt
+mqtt:
+  host: 192.168.1.43
+  port: 1883
+  ssl: false
+  username: homeassistant
+  password: adelaide1
+
+# This gets added to the x,y,z to derive a gps location
+gps:
+  latitude: 28.054929490994933
+  longitude: -82.5842766959691
+  elevation: 7
+
+map:
+  flip_x: false        # Set to true to flip X coordinates (default: false)
+  flip_y: true         # Set to true to use bottom-left origin, false for top-left origin (default: true)
+  wall_thickness: 0.1  # Wall thickness in meters
+  wall_color: "#ddd"   # Optional wall color, if not set uses room color
+  wall_opacity: 0.35   # Optional wall opacity, if not set defaults to 0.35
+
+# How long before device considered stale
+timeout: 30
+# How long before device is considered away
+away_timeout: 120
+
+optimization:
+  enabled: true
+  interval_secs: 3600
+  limits:
+    absorption_min: 2.5
+    absorption_max: 3.5
+    tx_ref_rssi_min: -70
+    tx_ref_rssi_max: -50
+    rx_adj_rssi_min: -15
+    rx_adj_rssi_max: 20
+
+history:
+  enabled: false # Enable to log history to db (Beta)
+  expire_after: 24h # Expire after 24 hours
+
+locators:
+  nadaraya_watson:
+    enabled: true
+    floors: ["first", "second", "outside"]
+    bandwidth: 0.5
+    kernel: gaussian
+
+  nealder_mead:
+    enabled: false
+    floors: ["first", "second", "outside"]
+    weighting:
+      algorithm: gaussian
+      props:
+        sigma: 0.10
+
+  nearest_node:
+    enabled: true
+    max_distance: 10
+
+# Floors w/ the points to draw it in meters
+floors:
+  - id: first
+    name: First Floor
+    # Bounds (x,y,z) of map in meters
+    bounds: [[0, 0, 0], [17, 18, 3]]
+    rooms:
+      - name: Powder
+        points:
+          - [6, 12]
+          - [8.6, 12]
+          - [8.6, 10]
+          - [8, 9]
+          - [6, 9]
+          - [6, 12]
+      - name: Den
+        points:
+          - [6, 16.2]
+          - [9.6, 16.2]
+          - [9.6, 13.5]
+          - [8.6, 12]
+          - [6, 12]
+          - [6, 14.5]
+      - name: Family
+        points:
+          - [0, 0.5]
+          - [0, 5.5]
+          - [5, 5.5]
+          - [6, 4.5]
+          - [6, 0.5]
+          - [5.5, 0]
+          - [0.5, 0]
+          - [0, 0.5]
+      - name: Kitchen
+        points:
+          - [6, 2]
+          - [6, 9]
+          - [8, 9]
+          - [8.6, 10]
+          - [12.5, 10]
+          - [12.5, 2]
+          - [6, 2]
+      - name: Garage
+        points:
+          - [0, 17]
+          - [1.5, 17]
+          - [1.5, 17.5]
+          - [6, 17.5]
+          - [6, 7.5]
+          - [0, 7.5]
+          - [0, 17]
+      - name: Living
+        points:
+          - [16.5, 13.25]
+          - [16.5, 7.75]
+          - [12.5, 7.75]
+          - [12.5, 13.25]
+          - [16.5, 13.25]
+      - name: Dining
+        points:
+          - [16.5, 2.75]
+          - [16.5, 7.75]
+          - [12.5, 7.75]
+          - [12.5, 2.75]
+          - [16.5, 2.75]
+      - name: Foyer
+        points:
+          - [9.6, 13.5]
+          - [9.6, 15]
+          - [12.5, 15]
+          - [12.5, 10]
+          - [11.6, 10]
+          - [8.6, 10]
+          - [8.6, 12]
+      - name: Laundry
+        points:
+          - [0, 7.5]
+          - [3.6, 7.5]
+          - [3.6, 5.5]
+          - [0, 5.5]
+          - [0, 7.5]
+  - id: second
+    name: Second Floor
+    bounds: [[0, 0, 3], [17, 18, 5.5]]
+    rooms:
+      - name: Master
+        points:
+          - [3.2, 13.5]
+          - [6, 13.5]
+          - [6, 12]
+          - [8.6, 12.0]
+          - [8.6, 10.5]
+          - [8.6, 8.5]
+          - [8, 7.5]
+          - [3.2, 7.5]
+          - [3.2, 13.5]
+      - name: Office
+        points:
+          - [6, 16.2]
+          - [9.6, 16.2]
+          - [9.6, 13.5]
+          - [8.6, 12]
+          - [6, 12]
+          - [6, 14.5]
+      - name: Master Bathroom
+        points:
+          - [0, 13.5]
+          - [3.2, 13.5]
+          - [3.2, 7.5]
+          - [0, 7.5]
+          - [0, 13.5]
+      - name: Master Closet
+        points:
+          - [0, 16.5]
+          - [1.5, 16.5]
+          - [1.5, 17.0]
+          - [6, 17.0]
+          - [6, 13.5]
+          - [0, 13.5]
+          - [0, 16.5]
+  - id: outside
+    name: Outside
+    bounds: [[-10, -10, -10], [28, 30, 20]]
+
+# Locations of espresense nodes in meters
+nodes:
+  - name: Master
+    point: [3.25, 11, 3.2]
+    floors: ["second"]
+  - name: Bathroom
+    point: [0.05, 9, 3.9]
+    floors: ["second", "outside"]
+  - name: Upstairs Hallway
+    point: [13, 7, 3.33]
+    floors: ["second"]
+  - name: Garage
+    point: [0.75, 16.8, 0.5]
+    floors: ["first", "outside"]
+  - name: Office
+    point: [6.75, 15.75, 3.6]
+    floors: ["second"]
+  - name: Family
+    point: [0.25, 0.4, 0.3]
+    floors: ["first", "outside"]
+  - name: Kitchen
+    point: [9.5, 9, 1]
+    floors: ["first"]
+  - name: Nook
+    point: [9, 2, 0.33]
+    floors: ["first"]
+  - name: Dining
+    point: [16.25, 3, 1.29]
+    floors: ["first", "outside"]
+  - name: Basement
+    point: [16, 13, -1]
+    floors: ["first", "outside"]
+  - name: Laundry
+    point: [5.1, 7.5, 1]
+    floors: ["first"]
+  - name: Back Stairs
+    point: [5.2, 7.5, 3.33]
+    floors: ["first", "second"]
+  - name: Foyer
+    point: [10,10.9,0.33]
+    floors: ["first"]
+  - name: Mini
+    stationary: false
+    point: [-2, 15, 0.5]
+    floors: ["outside"]
+
+# Devices to track
+devices:
+  - name: "*" # Track all named devices
+  - id: "tile:*" # Track all tiles
+  - id: "irk:*" # Track all IRKs
+  - id: "watch:*"
+  - id: "phone:*"
+  - id: "wallet:*"
+  - id: "keys:*"
+  - id: "therm:*"
+  - id: "iBeacon:*"
+  - id: "car:*"
+  - id: "laptop:*"
+  - id: "itag:f0f010303080"
+    name: "Piper's Backpack"
+
+# Devices to NOT track
+exclude_devices:
+  - id: "iBeacon:e5ca1ade-f007-ba11-0000-000000000000-*" # These are junk, we alias them to node:*
